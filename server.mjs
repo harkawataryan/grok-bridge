@@ -84,6 +84,19 @@ function buildServer() {
     catch (e) { return fail(e); }
   });
 
+  server.registerTool('grok_window', {
+    title: 'Show or hide Grok Bot',
+    description: 'Show the Grok Bot window on screen (e.g. so the user can watch or take over) or hide it again. ' +
+      'The bridge works the same either way; when it starts Grok Bot itself, the window starts hidden.',
+    inputSchema: { action: z.enum(['show', 'hide']).describe('show or hide') },
+  }, async ({ action }) => {
+    try {
+      await grok.exclusive(async () => {});  // make sure the app is running
+      const r = await grok.windowCtl(action, 5);
+      return text(`Grok Bot window ${action === 'show' ? 'shown' : 'hidden'} (${r}).`);
+    } catch (e) { return fail(e); }
+  });
+
   return server;
 }
 

@@ -30,8 +30,16 @@ and `GROK_CDP_PORT` to use a debug port other than 9333.
 | `grok_list_bots` | List bots, which one is open, and whether it's working |
 | `grok_select_bot` | Switch to another bot |
 
+| `grok_window` | Show the Grok Bot window (to watch or take over) or hide it again |
+
 If Grok Bot isn't running, or was started normally without the debug port, the bridge
 (re)starts it with the port. You stay signed in.
+
+**Runs hidden.** When the bridge starts Grok Bot, the window starts hidden: no pop-up and no
+taskbar button. It's also launched with Chromium's background throttling off, so hidden replies
+arrive at full speed. To see it, ask Claude to show it (`grok_window`) or just open Grok Bot
+from the Start menu. Set `GROK_HIDDEN=0` to launch it visibly instead. If you already have
+Grok Bot open (with the debug port), the bridge leaves your window alone.
 
 ## Claude Desktop / Claude Code (local, stdio)
 

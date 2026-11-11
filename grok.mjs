@@ -1,8 +1,21 @@
 // Drives the Grok Bot desktop app (Electron) through the Chrome DevTools Protocol.
 // The app has no public API, so this talks to its chat UI: types into the
 // prompt box, presses Enter, and reads transcript rows back out of the DOM.
-import { spawn, execFileSync } from 'node:child_process';
+import { spawn, execFileSync, execFile } from 'node:child_process';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// Launch Grok Bot with its window hidden unless GROK_HIDDEN=0.
+const HIDDEN = process.env.GROK_HIDDEN !== '0';
+const WINCTL = path.join(path.dirname(fileURLToPath(import.meta.url)), 'winctl.ps1');
+
+/** Show/hide the Grok Bot window via winctl.ps1. Resolves to its "windows=N visible=M" line. */
+export function windowCtl(action, seconds = 30) {
+  return new Promise((res, rej) => execFile('powershell',
+    ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', WINCTL, action, '-Seconds', String(seconds)],
+    { windowsHide: true, timeout: (seconds + 15) * 1000 },
+    (err, out) => err ? rej(err) : res(out.trim())));
+}
 
 const PORT = Number(process.env.GROK_CDP_PORT || 9333);
 const CDP = `http://127.0.0.1:${PORT}`;
@@ -35,14 +48,20 @@ export async function ensureApp() {
     restarted = true;
     for (let i = 0; i < 20 && grokRunning(); i++) await sleep(250);
   }
-  spawn(EXE, [`--remote-debugging-port=${PORT}`, '--remote-debugging-address=127.0.0.1'],
-    { detached: true, stdio: 'ignore', cwd: path.dirname(EXE) }).unref();
+  spawn(EXE, [
+    `--remote-debugging-port=${PORT}`, '--remote-debugging-address=127.0.0.1',
+    // Keep the page running at full speed while its window is hidden.
+    '--disable-renderer-backgrounding', '--disable-background-timer-throttling',
+    '--disable-backgrounding-occluded-windows',
+  ], { detached: true, stdio: 'ignore', cwd: path.dirname(EXE), windowsHide: HIDDEN }).unref();
+  // Hide the window the moment it appears (runs alongside the readiness wait below).
+  if (HIDDEN) windowCtl('hidewait', 30).catch(() => {});
   for (let i = 0; i < 60; i++) {
     await sleep(500);
     if (await cdpUp()) {
       // wait for the chat UI to render
       for (let j = 0; j < 40; j++) {
-        try { if (await evaluate(`!!document.querySelector('.sand-prompt-field')`)) return { restarted, launched: true }; } catch {}
+        try { if (await evaluate(`!!document.querySelector('.sand-prompt-field')`)) return { restarted, launched: true, hidden: HIDDEN }; } catch {}
         await sleep(500);
       }
     }
