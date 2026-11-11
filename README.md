@@ -41,7 +41,12 @@ If Grok Bot isn't running, or was started normally without the debug port, the b
 }
 ```
 
-Claude Code: `claude mcp add grok-bot -- node "<this folder>/server.mjs"`
+Claude Code (also what the Claude Desktop **Code** tab uses):
+`claude mcp add --scope user grok-bot -- node "<this folder>/server.mjs"`
+
+The Chat tab reads `claude_desktop_config.json`; the Code tab reads Claude Code's own config
+(`~/.claude.json`), so register it in both if you use both. Either way, fully quit and reopen
+Claude Desktop (or start a new session) afterwards, because running sessions don't pick up new servers.
 
 ## Claude on web / phone
 
