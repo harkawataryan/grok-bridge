@@ -36,7 +36,7 @@ export async function ensureApp() {
     for (let i = 0; i < 20 && grokRunning(); i++) await sleep(250);
   }
   spawn(EXE, [`--remote-debugging-port=${PORT}`, '--remote-debugging-address=127.0.0.1'],
-    { detached: true, stdio: 'ignore' }).unref();
+    { detached: true, stdio: 'ignore', cwd: path.dirname(EXE) }).unref();
   for (let i = 0; i < 60; i++) {
     await sleep(500);
     if (await cdpUp()) {
