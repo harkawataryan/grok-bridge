@@ -1,0 +1,11 @@
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+const c = new Client({ name: 'test', version: '1' });
+await c.connect(new StdioClientTransport({ command: 'node', args: ['server.mjs'] }));
+console.log('TOOLS:', (await c.listTools()).tools.map(t => t.name).join(', '));
+const show = async (name, args) => { const r = await c.callTool({ name, arguments: args }); console.log(`\n=== ${name} ${JSON.stringify(args)}${r.isError ? ' ERROR' : ''}\n` + r.content[0].text); };
+await show('grok_list_bots', {});
+await show('grok_read', { count: 3 });
+await show('grok_send', { message: 'Bridge test 3 from Claude (multi-line).\nLine two: reply with exactly "GOT 2 LINES".', wait_seconds: 90 });
+await show('grok_select_bot', { bot: 'nonexistent-bot' });
+await c.close();

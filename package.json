@@ -1,0 +1,20 @@
+{
+  "name": "grok-bridge",
+  "version": "1.0.0",
+  "description": "MCP server that lets Claude control the Grok Bot desktop app",
+  "type": "module",
+  "main": "server.mjs",
+  "bin": { "grok-bridge": "server.mjs" },
+  "scripts": {
+    "start": "node server.mjs",
+    "http": "node server.mjs --http 8790",
+    "selftest": "node test-client.mjs"
+  },
+  "keywords": ["mcp", "claude", "grok", "grok-bot"],
+  "license": "MIT",
+  "engines": { "node": ">=22" },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
+  }
+}
