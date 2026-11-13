@@ -2,3 +2,5 @@ node_modules/
 .bridge-token
 NVIDIA Corporation/
 grok-bridge/
+logs/
+connector-url.txt

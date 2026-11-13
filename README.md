@@ -63,11 +63,32 @@ Two options:
 1. **Through your desktop (recommended, nothing exposed):** keep Claude Desktop running on
    this PC with the bridge installed, and talk to it from your phone via Remote Control /
    Dispatch. The phone sends instructions to the desktop session, and the desktop session calls the bridge.
-2. **As a custom connector:** run `node server.mjs --http 8790` and expose it with a
-   tunnel (for example `ngrok http 8790`). Add `https://<tunnel-host>/mcp/<token>` as a custom
-   connector in claude.ai → Settings → Connectors. The token is in `.bridge-token` and is the
+2. **As a custom connector (works in claude.ai chats and the mobile app):** run the bridge in
+   HTTP mode behind a tunnel, then add `https://<your-host>/mcp/<token>` in claude.ai →
+   Settings → Connectors → Add custom connector. The token is in `.bridge-token` and is the
    only thing protecting access. Anyone with the URL can make your bot place calls and
-   send email, so keep it private and stop the tunnel when you're not using it.
+   send email, so keep it private. To rotate it, delete `.bridge-token` and restart the bridge.
+
+   **Cloudflare Tunnel on your own domain (free):**
+   ```bash
+   cloudflared tunnel login                      # approve your domain in the browser
+   cloudflared tunnel create grok-bridge
+   cloudflared tunnel route dns grok-bridge grok.example.com
+   ```
+   `~/.cloudflared/config.yml`:
+   ```yaml
+   tunnel: <tunnel-id>
+   credentials-file: C:\Users\<you>\.cloudflared\<tunnel-id>.json
+   ingress:
+     - hostname: grok.example.com
+       service: http://127.0.0.1:8790
+     - service: http_status:404
+   ```
+   `remote.ps1` keeps the bridge (HTTP mode) and the tunnel running and restarts either one if it
+   stops; `remote-start.vbs` starts it with no window. Put a shortcut to `remote-start.vbs` in
+   your Startup folder (`shell:startup`) to run it at login. Logs go to `logs/`.
+   The PC has to be on and awake for the connector to work. (ngrok works too, e.g.
+   `ngrok http 8790 --url <your-static-domain>`.)
 
 ## Notes / limits
 
