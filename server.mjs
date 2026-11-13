@@ -117,6 +117,13 @@ if (httpIdx === -1) {
 
   http.createServer(async (req, res) => {
     if (req.url.split('?')[0] !== route) { res.writeHead(404).end(); return; }
+    // Stateless server: no standalone SSE stream (GET) or sessions (DELETE). Answer 405 so
+    // clients like claude.ai don't hang probing them.
+    if (req.method !== 'POST') {
+      res.writeHead(405, { allow: 'POST', 'content-type': 'application/json' })
+        .end(JSON.stringify({ jsonrpc: '2.0', error: { code: -32000, message: 'Method not allowed.' }, id: null }));
+      return;
+    }
     let body = '';
     for await (const c of req) body += c;
     try {
