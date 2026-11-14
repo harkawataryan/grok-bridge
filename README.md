@@ -85,8 +85,16 @@ Two options:
      - service: http_status:404
    ```
    `remote.ps1` keeps the bridge (HTTP mode) and the tunnel running and restarts either one if it
-   stops; `remote-start.vbs` starts it with no window. Put a shortcut to `remote-start.vbs` in
-   your Startup folder (`shell:startup`) to run it at login. Logs go to `logs/`.
+   stops; `remote-start.vbs` starts it with no window. Run it at login with a scheduled task
+   (not a shell you might close, or an app like Claude Desktop, which takes its child processes
+   down with it when it restarts):
+   ```powershell
+   $a = New-ScheduledTaskAction -Execute wscript.exe -Argument '"<this folder>\remote-start.vbs"'
+   $s = New-ScheduledTaskSettingsSet -ExecutionTimeLimit 0 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew
+   Register-ScheduledTask 'Grok Bridge (remote)' -Action $a -Trigger (New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME) -Settings $s
+   Start-ScheduledTask 'Grok Bridge (remote)'
+   ```
+   Logs go to `logs/`.
    The PC has to be on and awake for the connector to work. (ngrok works too, e.g.
    `ngrok http 8790 --url <your-static-domain>`.)
 
